@@ -3,6 +3,10 @@
 # Below is the script taken from respective links
 # Thanks to all those awesome people who worked on them. :)
 
+<#source: https://stackoverflow.com/questions/7690994/running-a-command-as-administrator-using-powershell#>
+#slightly modified
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { Start-Process powershell.exe "-windowstyle hidden -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Write-Host "Procesing..."; Start-Sleep -s 15; Write-Host "Operation Completed"; exit}
+
 
 <#source : https://gist.github.com/dend/5ae8a70678e3a35d02ecd39c12f99110#>
 function Show-Notification {
@@ -12,7 +16,9 @@ function Show-Notification {
         $ToastTitle,
         [string]
         [parameter(ValueFromPipeline)]
-        $ToastText
+        $ToastText,
+        [int]
+        $DurationInSec=5
     )
 
     [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null
@@ -28,22 +34,21 @@ function Show-Notification {
     $Toast = [Windows.UI.Notifications.ToastNotification]::new($SerializedXml)
     $Toast.Tag = "PowerShell"
     $Toast.Group = "PowerShell"
-    $Toast.ExpirationTime = [DateTimeOffset]::Now.AddSeconds(10)
+    $Toast.ExpirationTime = [DateTimeOffset]::Now.AddSeconds($DurationInSec)
 
     $Notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("PowerShell")
     $Notifier.Show($Toast);
 }
-
-<#source: https://stackoverflow.com/questions/7690994/running-a-command-as-administrator-using-powershell#>
-#slightly modified
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { Start-Process powershell.exe "-windowstyle hidden -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Start-Sleep -s 15; exit}
-
 #endregion
 
 
-# Run below line  
+# create desktop shortcut with below command
+# replace with your file path
+# C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File "C:\Users\yoges\Documents\Projects\PowerShell-Scripts\CameraToggler.ps1"
+
+# Run below line first while execuing from powershell
 # Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { Start-Process powershell.exe "-windowstyle hidden -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Start-Sleep -s 15; exit}
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) { Start-Process powershell.exe "-windowstyle hidden -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs; Start-Sleep -s 5; exit}
 
 $camera=Get-PnpDevice -FriendlyName "*HD User Facing*" -Class "Camera" -ErrorAction SilentlyContinue;
 $status="Unknown";
